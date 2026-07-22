@@ -4,257 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Карта голосований по регионам</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .header h1 {
-            margin: 0;
-            color: #1a1a2e;
-            font-size: 24px;
-        }
-        
-        .status-badge {
-            font-size: 14px;
-            color: #666;
-            background: #f8f9fa;
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .status-dot.online {
-            background: #28a745;
-            animation: pulse-dot 2s infinite;
-        }
-        
-        .status-dot.offline {
-            background: #dc3545;
-        }
-        
-        @keyframes pulse-dot {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-        
-        .last-update {
-            font-size: 12px;
-            color: #999;
-        }
-        
-        /* Карта */
-        .rf-map {
-            position: relative;
-            max-width: 100%;
-            margin: auto;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fafafa;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .rf-map svg {
-            width: 100%;
-            height: auto;
-            display: block;
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
-        }
-        
-        .rf-map path {
-            stroke: #FFFFFF;
-            stroke-width: 1.5;
-            stroke-linejoin: round;
-            transition: fill 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .rf-map [data-code] {
-            fill: #c5d5e8;
-            transition: fill 0.3s;
-        }
-        
-        .rf-map [data-code]:hover {
-            fill: #7ba9d4;
-            filter: brightness(1.05);
-        }
-        
-        .rf-map [data-code].active {
-            fill: #4a90d9;
-        }
-        
-        /* Подсветка регионов с голосами */
-        .rf-map [data-code].has-votes {
-            fill: #2d7bcb;
-        }
-        
-        .rf-map [data-code].has-votes:hover {
-            fill: #1a5a9e;
-        }
-        
-        /* Легенда */
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 15px;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #555;
-        }
-        
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        /* Инфопанель */
-        .info-panel {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        #info {
-            flex: 2;
-            padding: 15px 20px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            border-left: 4px solid #4a90d9;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-            color: #333;
-            min-width: 200px;
-        }
-        
-        #info .region-name {
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        
-        #info .votes-count {
-            color: #4a90d9;
-            font-weight: 700;
-        }
-        
-        #stats {
-            flex: 1;
-            padding: 15px 20px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            min-width: 180px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        #stats h3 {
-            margin: 0 0 10px 0;
-            font-size: 15px;
-            color: #333;
-        }
-        
-        #stats ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        #stats li {
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-        }
-        
-        #stats li:last-child {
-            border-bottom: none;
-        }
-        
-        #stats .total-row {
-            font-weight: bold;
-            border-top: 2px solid #ddd;
-            padding-top: 8px;
-            margin-top: 4px;
-        }
-        
-        .status-text {
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        
-        @media (max-width: 768px) {
-            .container { padding: 15px; }
-            .header h1 { font-size: 20px; }
-            .info-panel { flex-direction: column; }
-            #stats { max-height: 200px; }
-        }
-    </style>
+    <link rel="stylesheet" href="static/css/map.css">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
     <div class="container">
         <!-- Шапка -->
         <div class="header">
-            <h1>🗺️ Карта голосований по регионам</h1>
+            <h1>🗺️ Карта <span>голосований</span></h1>
             <div class="status-badge">
                 <span class="status-dot online" id="statusDot"></span>
                 <span id="statusText">Подключено</span>
@@ -263,50 +20,38 @@
         </div>
         
         <!-- Карта -->
-        <div class="rf-map" id="mapContainer">
-            <!-- СЮДА ВСТАВЬТЕ ВАШУ SVG КАРТУ -->
-            <div id="mapPlaceholder" style="padding:40px;text-align:center;color:#999;">
-                Загрузка карты...
+        <div class="map-wrapper">
+            <div class="rf-map" id="mapContainer">
+                <div id="mapPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4a5568;font-size:18px;">
+                    ⏳ Загрузка карты...
+                </div>
             </div>
         </div>
         
-        <!-- Легенда -->
-        <div class="legend">
-            <span style="font-weight:600;color:#333;margin-right:4px;">Голосов:</span>
-            <div class="legend-item">
-                <span class="legend-color" style="background:#c5d5e8;"></span>
-                <span>0</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background:#6ba3d6;"></span>
-                <span>1-5</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background:#4a8bc4;"></span>
-                <span>6-15</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background:#2d7bcb;"></span>
-                <span>16-30</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background:#1a5a9e;"></span>
-                <span>31+</span>
-            </div>
-        </div>
-        
-        <!-- Информационная панель -->
-        <div class="info-panel">
+        <!-- Нижняя панель -->
+        <div class="bottom-panel">
             <div id="info">👆 Нажмите на регион, чтобы увидеть детали</div>
             <div id="stats">
-                <h3>📊 Топ регионов</h3>
+                <h3>🏆 Топ регионов</h3>
                 <ul id="statsList">
-                    <li style="color:#999;">Загрузка данных...</li>
+                    <li style="color:#4a5568;">Загрузка...</li>
                 </ul>
             </div>
         </div>
         
-        <div class="status-text" id="debugInfo">Ожидание данных...</div>
+        <!-- Легенда -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;flex-shrink:0;">
+            <div class="legend">
+                <span style="color:#718096;font-size:12px;font-weight:500;">Голосов:</span>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#fc8181,#e53e3e);"></span>1-2</div>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#f6ad55,#dd6b20);"></span>3-5</div>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#f6e05e,#d69e2e);"></span>6-10</div>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#68d391,#38a169);"></span>11-20</div>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#63b3ed,#3182ce);"></span>21-40</div>
+                <div class="legend-item"><span class="legend-color" style="background:linear-gradient(135deg,#b794f4,#805ad5);"></span>40+</div>
+            </div>
+            <div class="status-text" id="debugInfo">🔄 Автообновление каждые 2 сек</div>
+        </div>
     </div>
     
     <script type="module">
@@ -314,13 +59,11 @@
         // 1. КОНФИГУРАЦИЯ
         // ============================================================
         const API_URL = '/api/get_map_votes';
-        const UPDATE_INTERVAL = 2000; // 2 секунды
+        const UPDATE_INTERVAL = 2000;
         
         // ============================================================
-        // 2. СПИСОК РЕГИОНОВ НА КАРТЕ (коды из data-code)
+        // 2. СПИСОК РЕГИОНОВ (коды из data-code на карте)
         // ============================================================
-        // Все регионы, которые есть на карте. Можно заполнить автоматически
-        // при загрузке, но для работы с данными нужен список.
         const REGION_CODES = [
             'RU-MOW', 'RU-SPE', 'RU-NEN', 'RU-YAR', 'RU-CHE', 'RU-ULY',
             'RU-TYU', 'RU-TUL', 'RU-SVE', 'RU-RYA', 'RU-ORL', 'RU-OMS',
@@ -339,13 +82,27 @@
             'RU-IRK', 'RU-HR', 'RU-ZP', 'RU-DON', 'RU-LUG'
         ];
         
+        // Координаты маркеров в процентах от размера карты (0-100)
+        // x — горизонталь, y — вертикаль (0 = верх)
+        const MARKER_COORDS = {
+            'RU-DON': { x: 60.5, y: 23.3 },
+            'RU-LUG': { x: 60.9, y: 23.0 },
+            'RU-ZP': { x: 59.8, y: 23.4 },
+            'RU-HR': { x: 59.0, y: 24.1 },
+            'RU-CR': { x: 59.4, y: 25.0 },
+            // Добавьте другие регионы при необходимости
+            // 'RU-MOW': { x: 37.6, y: 14.5 },
+            // 'RU-SPE': { x: 30.3, y: 10.5 },
+        };
+        
         // ============================================================
         // 3. СОСТОЯНИЕ
         // ============================================================
-        let votesData = {};      // { 'RU-MOW': 5, 'RU-SPE': 3, ... }
-        let regionNames = {};    // { 'RU-MOW': 'Москва', ... }
+        let votesData = {};
+        let regionNames = {};
         let selectedRegion = null;
         let updateTimer = null;
+        let isFirstLoad = true;
         
         // ============================================================
         // 4. DOM-ЭЛЕМЕНТЫ
@@ -364,122 +121,153 @@
         async function fetchVotes() {
             try {
                 const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (error) {
-                console.error('Ошибка при получении данных:', error);
+                console.error('Ошибка:', error);
                 return null;
             }
         }
         
         function processVotesData(data) {
-            let result = {};
-            
-            // Инициализируем все регионы нулями
-            REGION_CODES.forEach(code => {
-                result[code] = 0;
-            });
+            const result = {};
+            REGION_CODES.forEach(code => result[code] = 0);
             
             if (Array.isArray(data)) {
-                // [{ region: 'RU-MOW', votes: 5 }, ...]
                 data.forEach(item => {
                     const code = item.region || item.code || item.id;
                     const votes = item.votes || item.count || 0;
-                    if (code && REGION_CODES.includes(code)) {
-                        result[code] = votes;
-                    }
+                    if (code && REGION_CODES.includes(code)) result[code] = votes;
                 });
             } else if (data && typeof data === 'object') {
                 if (data.regions && typeof data.regions === 'object') {
-                    // { regions: { 'RU-MOW': 5, ... } }
                     Object.entries(data.regions).forEach(([key, val]) => {
-                        if (REGION_CODES.includes(key)) {
-                            result[key] = val;
-                        }
+                        if (REGION_CODES.includes(key)) result[key] = val;
                     });
                 } else {
-                    // { 'RU-MOW': 5, 'RU-SPE': 3, ... }
                     Object.entries(data).forEach(([key, val]) => {
-                        if (REGION_CODES.includes(key)) {
-                            result[key] = val;
-                        }
+                        if (REGION_CODES.includes(key)) result[key] = val;
                     });
                 }
             }
-            
             return result;
         }
         
         // ============================================================
-        // 6. ОБНОВЛЕНИЕ КАРТЫ (подсветка регионов)
+        // 6. ОТРИСОВКА МАРКЕРОВ
         // ============================================================
-        function getColorByVotes(votes) {
-            if (votes === 0) return '#c5d5e8';
-            if (votes <= 5) return '#6ba3d6';
-            if (votes <= 15) return '#4a8bc4';
-            if (votes <= 30) return '#2d7bcb';
-            return '#1a5a9e';
+        function getLevel(votes) {
+            if (votes === 0) return 0;
+            if (votes <= 2) return 1;
+            if (votes <= 5) return 2;
+            if (votes <= 10) return 3;
+            if (votes <= 20) return 4;
+            if (votes <= 40) return 5;
+            return 6;
         }
         
+        function renderMarkers() {
+            // Удаляем старые маркеры
+            const oldMarkers = mapContainer.querySelectorAll('.custom-marker');
+            oldMarkers.forEach(m => m.remove());
+            
+            const svg = mapContainer.querySelector('svg');
+            if (!svg) return;
+            
+            const rect = mapContainer.getBoundingClientRect();
+            const svgRect = svg.getBoundingClientRect();
+            
+            // Коэффициент масштабирования
+            const scaleX = rect.width / 100;
+            const scaleY = rect.height / 100;
+            
+            Object.entries(MARKER_COORDS).forEach(([code, coords]) => {
+                const votes = votesData[code] || 0;
+                
+                // Показываем маркер только если есть голоса
+                if (votes <= 0) return;
+                
+                const level = getLevel(votes);
+                
+                const marker = document.createElement('div');
+                marker.className = 'custom-marker visible';
+                marker.dataset.region = code;
+                
+                const x = coords.x * scaleX;
+                const y = coords.y * scaleY;
+                
+                marker.style.left = x + 'px';
+                marker.style.top = y + 'px';
+                
+                // Точка с числом
+                const dot = document.createElement('div');
+                dot.className = `marker-dot has-votes level-${level}`;
+                dot.textContent = votes;
+                
+                // Подпись
+                const label = document.createElement('div');
+                label.className = 'marker-label';
+                label.textContent = regionNames[code] || code;
+                
+                marker.appendChild(dot);
+                marker.appendChild(label);
+                mapContainer.appendChild(marker);
+            });
+        }
+        
+        // ============================================================
+        // 7. ОБНОВЛЕНИЕ КАРТЫ (подсветка регионов)
+        // ============================================================
         function updateMapColors() {
             const svg = mapContainer.querySelector('svg');
             if (!svg) return;
             
             const paths = svg.querySelectorAll('path[data-code]');
-            
             paths.forEach(path => {
                 const code = path.dataset.code || path.getAttribute('data-code');
                 if (!code) return;
                 
                 const votes = votesData[code] || 0;
-                const color = getColorByVotes(votes);
+                const hasVotes = votes > 0;
                 
-                // Сохраняем оригинальный цвет как data-атрибут для сброса при наведении
-                if (!path.dataset.originalFill) {
-                    path.dataset.originalFill = color;
-                }
-                
-                path.style.fill = color;
-                
-                // Добавляем класс для CSS-стилей
-                if (votes > 0) {
+                // Если есть голоса — делаем чуть ярче
+                if (hasVotes) {
+                    path.style.fill = '#3a5a7e';
                     path.classList.add('has-votes');
                 } else {
+                    path.style.fill = '#2a3a5e';
                     path.classList.remove('has-votes');
                 }
             });
         }
         
         // ============================================================
-        // 7. ОБНОВЛЕНИЕ СПИСКА РЕГИОНОВ (сортировка по голосам)
+        // 8. ОБНОВЛЕНИЕ СТАТИСТИКИ
         // ============================================================
         function renderStats() {
             const total = Object.values(votesData).reduce((sum, v) => sum + v, 0);
             
-            // Сортируем регионы по голосам (по убыванию)
             const sorted = Object.entries(votesData)
                 .filter(([_, votes]) => votes > 0)
                 .sort((a, b) => b[1] - a[1]);
             
             if (sorted.length === 0) {
-                statsList.innerHTML = '<li style="color:#999;">Нет голосов</li>';
+                statsList.innerHTML = '<li style="color:#4a5568;">Нет голосов</li>';
                 return;
             }
             
             let html = '';
-            sorted.forEach(([code, votes]) => {
+            sorted.slice(0, 10).forEach(([code, votes]) => {
                 const name = regionNames[code] || code;
-                html += `<li><span>${name}</span> <span>${votes}</span></li>`;
+                html += `<li><span>${name}</span> <span class="votes-num">${votes}</span></li>`;
             });
             
-            html += `<li class="total-row"><span>Всего проголосовало</span> <span>${total}</span></li>`;
+            html += `<li class="total-row"><span>Всего</span> <span class="votes-num">${total}</span></li>`;
             statsList.innerHTML = html;
         }
         
         // ============================================================
-        // 8. ОБНОВЛЕНИЕ ИНФОРМАЦИИ О РЕГИОНЕ
+        // 9. ОБНОВЛЕНИЕ ИНФОРМАЦИИ О РЕГИОНЕ
         // ============================================================
         function updateInfo(regionCode) {
             if (regionCode && regionNames[regionCode]) {
@@ -490,38 +278,19 @@
                     &nbsp;—&nbsp;
                     <span class="votes-count">${votes} голос${votes % 10 === 1 && votes % 100 !== 11 ? '' : 'ов'}</span>
                 `;
-                infoDiv.style.borderLeftColor = '#28a745';
             } else {
                 const total = Object.values(votesData).reduce((sum, v) => sum + v, 0);
                 const votedRegions = Object.values(votesData).filter(v => v > 0).length;
                 infoDiv.innerHTML = `
                     📊 Всего голосов: <span class="votes-count">${total}</span>
-                    &nbsp;·&nbsp; Регионов с голосами: <span class="votes-count">${votedRegions}</span>
-                    &nbsp;·&nbsp; Нажмите на регион для деталей
+                    &nbsp;·&nbsp; Регионов: <span class="highlight-blue">${votedRegions}</span>
+                    &nbsp;·&nbsp; Нажмите на регион
                 `;
-                infoDiv.style.borderLeftColor = '#4a90d9';
             }
         }
         
         // ============================================================
-        // 9. ОБНОВЛЕНИЕ СТАТУСА
-        // ============================================================
-        function updateStatus(isOnline, errorMessage = '') {
-            if (isOnline) {
-                statusDot.className = 'status-dot online';
-                statusText.textContent = 'Подключено';
-                statusText.style.color = '#28a745';
-                lastUpdateEl.textContent = new Date().toLocaleTimeString();
-            } else {
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = 'Ошибка';
-                statusText.style.color = '#dc3545';
-                lastUpdateEl.textContent = errorMessage || 'Нет соединения';
-            }
-        }
-        
-        // ============================================================
-        // 10. СБОР НАЗВАНИЙ РЕГИОНОВ С КАРТЫ
+        // 10. СБОР НАЗВАНИЙ РЕГИОНОВ
         // ============================================================
         function collectRegionNames() {
             const svg = mapContainer.querySelector('svg');
@@ -531,80 +300,68 @@
             paths.forEach(path => {
                 const code = path.dataset.code || path.getAttribute('data-code');
                 const title = path.dataset.title || path.getAttribute('data-title') || code;
-                if (code) {
-                    regionNames[code] = title;
-                }
+                if (code) regionNames[code] = title;
             });
         }
         
         // ============================================================
-        // 11. ГЛАВНЫЙ ЦИКЛ ОБНОВЛЕНИЯ
+        // 11. ГЛАВНЫЙ ЦИКЛ
         // ============================================================
         async function updateData() {
             try {
                 const data = await fetchVotes();
-                
                 if (data === null) {
-                    updateStatus(false, 'Ошибка запроса');
-                    debugInfo.textContent = `❌ Ошибка при получении данных (${new Date().toLocaleTimeString()})`;
+                    statusDot.className = 'status-dot offline';
+                    statusText.textContent = 'Ошибка';
                     return;
                 }
                 
-                const processed = processVotesData(data);
+                votesData = processVotesData(data);
                 
-                votesData = processed;
-                updateStatus(true);
-                debugInfo.textContent = `✅ Обновлено: ${Object.keys(votesData).length} регионов (${new Date().toLocaleTimeString()})`;
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'Подключено';
+                lastUpdateEl.textContent = new Date().toLocaleTimeString();
+                debugInfo.textContent = `✅ ${new Date().toLocaleTimeString()}`;
                 
-                // Обновляем карту
                 updateMapColors();
+                renderMarkers();
                 renderStats();
+                updateInfo(selectedRegion);
                 
-                if (selectedRegion) {
-                    updateInfo(selectedRegion);
-                } else {
-                    updateInfo(null);
-                }
-                
+                isFirstLoad = false;
             } catch (error) {
-                console.error('Ошибка в цикле обновления:', error);
-                updateStatus(false, error.message);
-                debugInfo.textContent = `❌ Ошибка: ${error.message}`;
+                console.error('Ошибка:', error);
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'Ошибка';
             }
         }
         
         // ============================================================
-        // 12. НАСТРОЙКА КЛИКОВ ПО РЕГИОНАМ
+        // 12. КЛИКИ ПО РЕГИОНАМ
         // ============================================================
         function setupRegionClicks() {
             const svg = mapContainer.querySelector('svg');
             if (!svg) return;
             
             const paths = svg.querySelectorAll('path[data-code]');
-            
             paths.forEach(path => {
                 path.addEventListener('click', () => {
                     const code = path.dataset.code || path.getAttribute('data-code');
-                    
                     if (code) {
                         selectedRegion = code;
-                        
-                        // Подсветка
                         paths.forEach(p => p.classList.remove('active'));
                         path.classList.add('active');
-                        
                         updateInfo(code);
                     }
                 });
-                
                 path.addEventListener('mouseenter', () => {
                     path.style.cursor = 'pointer';
                 });
             });
         }
-
-        // ============================================================
-        // 13 ЗАГРУЗКА SVG КАРТЫ
+        
+                // ============================================================
+        // 4.1 ЗАГРУЗКА SVG КАРТЫ
         // ============================================================
         // Если карта у вас в отдельном файле — раскомментируйте:
         async function loadMapSVG() {
@@ -637,48 +394,33 @@
                 </div>
             `;
         }
-        
+
         // ============================================================
-        // 14. ИНИЦИАЛИЗАЦИЯ
+        // 13. ИНИЦИАЛИЗАЦИЯ
         // ============================================================
-        async function init() {
+        function init() {
             const svg = mapContainer.querySelector('svg');
             if (!svg) {
-                setTimeout(() => {
-                    const svg2 = mapContainer.querySelector('svg');
-                    if (svg2) {
-                        collectRegionNames();
-                        setupRegionClicks();
-                        updateData();
-                        updateTimer = setInterval(updateData, UPDATE_INTERVAL);
-                    } else {
-                        document.getElementById('mapPlaceholder').innerHTML = 
-                            '❌ SVG карта не найдена. Вставьте код карты в HTML.';
-                    }
-                }, 1000);
+                setTimeout(init, 500);
                 return;
             }
             
             collectRegionNames();
             setupRegionClicks();
-            await updateData();
+            updateData();
             
             if (updateTimer) clearInterval(updateTimer);
             updateTimer = setInterval(updateData, UPDATE_INTERVAL);
             
-            debugInfo.textContent = `🔄 Автообновление каждые ${UPDATE_INTERVAL/1000} сек`;
-            console.log('🗺️ Регионы загружены:', Object.keys(regionNames).length);
+            console.log('🗺️ Карта инициализирована, регионов:', Object.keys(regionNames).length);
         }
         
         document.addEventListener('DOMContentLoaded', init);
-        
         window.addEventListener('beforeunload', () => {
             if (updateTimer) clearInterval(updateTimer);
         });
         
-        // Для отладки
         window.__map = { votesData, regionNames, updateData };
-        console.log('🗺️ Карта инициализирована. Используйте window.__map для отладки');
     </script>
 </body>
 </html>
