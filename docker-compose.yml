@@ -1,7 +1,7 @@
 services:
   votes-app:
     build: .
-    container_name: region-votes-app
+    container_name: votes-app
     ports:
       - "8000:8000"
     volumes:
