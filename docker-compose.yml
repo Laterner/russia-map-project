@@ -5,12 +5,13 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - ./data:/app/data
       - ./static:/app/static
     environment:
       - TZ=Europe/Moscow
     networks:
       - app_network
-    # restart: unless-stopped
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine

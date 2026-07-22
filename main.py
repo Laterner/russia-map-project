@@ -2,6 +2,7 @@
 from quart import Quart, render_template, request, jsonify, send_from_directory
 import aiosqlite
 import uuid
+import os
 from datetime import datetime
 from regions import REGIONS
 
@@ -10,11 +11,11 @@ app = Quart(__name__)
 app.static_folder = 'static'
 app.static_url_path = '/static'
 
-
+DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'votes.db')
 
 # Инициализация базы данных
 async def init_db():
-    async with aiosqlite.connect('votes.db') as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS regions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +49,7 @@ async def startup():
 # Получение голосов для карты
 @app.route('/api/get_map_votes')
 async def get_map_votes():
-    async with aiosqlite.connect('votes.db') as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute('''
             SELECT r.code, COUNT(v.id) as votes_count
             FROM regions r
@@ -68,7 +69,7 @@ async def index():
 # Главная страница с формой голосования
 @app.route('/vote_page')
 async def vote_page():
-    async with aiosqlite.connect('votes.db') as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute('SELECT id, name, code FROM regions ORDER BY name')
         regions = await cursor.fetchall()
         
@@ -99,7 +100,7 @@ async def vote():
     if not user_id:
         user_id = str(uuid.uuid4())
     
-    async with aiosqlite.connect('votes.db') as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         try:
             # Проверяем, не голосовал ли уже пользователь
             cursor = await db.execute(
@@ -129,7 +130,7 @@ async def vote():
 # Статистика голосов
 @app.route('/stats')
 async def stats():
-    async with aiosqlite.connect('votes.db') as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute('''
             SELECT r.name, r.code, COUNT(v.id) as votes_count
             FROM regions r
