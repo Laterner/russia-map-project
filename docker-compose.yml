@@ -5,10 +5,11 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./votes.db:/votes.db
       - ./static:/app/static
     environment:
       - TZ=Europe/Moscow
+    networks:
+      - app_network
     # restart: unless-stopped
 
   nginx:
