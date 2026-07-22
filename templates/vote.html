@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование за регионы России</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="{{ url_for('static', filename='images/russia-flag.png') }}" alt="🇷🇺" width="32" height="32">
+            Выберите свой регион
+        </h1>
+        
+        {% if has_voted %}
+            <div class="info">✅ Вы уже проголосовали. Спасибо за участие!</div>
+        {% else %}
+            <form id="voteForm">
+                <div class="region-list">
+                    {% for region in regions %}
+                    <div class="region-item">
+                        <input type="radio" name="region_id" value="{{ region[0] }}" id="region_{{ region[0] }}">
+                        <label for="region_{{ region[0] }}">
+                            <span class="region-code">{{ region[2] }}</span>
+                            {{ region[1] }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="vote-btn" id="voteBtn">🗳️ Проголосовать</button>
+            </form>
+        {% endif %}
+        
+        <div id="message" class="message"></div>
+        
+        <div class="links">
+            <a href="/stats" class="stats-link">📊 Статистика</a>
+            <a href="/api/get_map_votes" class="stats-link">🗺️ Данные для карты</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
