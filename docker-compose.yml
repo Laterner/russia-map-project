@@ -35,15 +35,14 @@ services:
     container_name: certbot
     volumes:
       - ./certs:/etc/letsencrypt
-      - ./static:/var/www/certbot   # для проверки через веб-сервер
+      - ./static:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
     networks:
       - app_network
     depends_on:
       - nginx
-    # Не запускаем автоматически, лучше выполнить вручную первый раз
     profiles:
-      - certbot   # запускать только с --profile certbot, если нужен авторежим
+      - certbot
 
 networks:
   app_network:
