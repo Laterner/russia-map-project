@@ -10,6 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Создаем директорию для базы данных и даем права
+RUN mkdir -p /app/data && chmod 755 /app/data
+
 RUN mkdir -p static/css static/js static/images
 
 EXPOSE 8000
