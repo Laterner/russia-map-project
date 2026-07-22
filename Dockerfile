@@ -12,7 +12,7 @@ COPY . .
 
 RUN mkdir -p static/css static/js static/images
 
-EXPOSE 5000
+EXPOSE 8000
 
 # Используем правильную команду запуска
 CMD ["python3", "main.py"]
