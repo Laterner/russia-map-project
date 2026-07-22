@@ -95,7 +95,7 @@ async def vote():
     if not region_id:
         return jsonify({"error": "Регион не выбран"}), 400
     
-    user_id = request.cookies.get('user_id')
+    user_id = None # = request.cookies.get('user_id')
     if not user_id:
         user_id = str(uuid.uuid4())
     
