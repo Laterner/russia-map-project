@@ -24,7 +24,7 @@ services:
       - ./certs:/etc/nginx/certs/fstbot.ru:ro
       - ./logs/nginx:/var/log/nginx
     depends_on:
-      - fastapi
+      - region-votes-app
     networks:
       - app_network
 
