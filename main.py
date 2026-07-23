@@ -139,7 +139,7 @@ async def stats():
             ORDER BY votes_count DESC
         ''')
         stats_data = await cursor.fetchall()
-    
+    print('stats_data --> ', stats_data)
     return await render_template('stats.html', stats=stats_data)
 
 if __name__ == '__main__':

@@ -56,14 +56,16 @@
             <thead>
                 <tr>
                     <th>Город</th>
+                    <th>Код</th>
                     <th>Голосов</th>
                 </tr>
             </thead>
             <tbody>
-                {% for city, votes in stats %}
+                {% for region in stats %}
                 <tr>
-                    <td>{{ city }}</td>
-                    <td>{{ votes }}</td>
+                    <td>{{ region[0] }}</td>
+                    <td>{{ region[1] }}</td>
+                    <td>{{ region[2] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
