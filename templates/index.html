@@ -84,16 +84,7 @@
         
         // Координаты маркеров в процентах от размера карты (0-100)
         // x — горизонталь, y — вертикаль (0 = верх)
-        const MARKER_COORDS = {
-            'RU-DON': { x: 60.5, y: 23.3 },
-            'RU-LUG': { x: 60.9, y: 23.0 },
-            'RU-ZP': { x: 59.8, y: 23.4 },
-            'RU-HR': { x: 59.0, y: 24.1 },
-            'RU-CR': { x: 59.4, y: 25.0 },
-            // Добавьте другие регионы при необходимости
-            // 'RU-MOW': { x: 37.6, y: 14.5 },
-            // 'RU-SPE': { x: 30.3, y: 10.5 },
-        };
+        // let MARKER_COORDS = null;
         
         // ============================================================
         // 3. СОСТОЯНИЕ
@@ -103,6 +94,7 @@
         let selectedRegion = null;
         let updateTimer = null;
         let isFirstLoad = true;
+        let markerElements = {}; // Хранилище созданных маркеров { 'RU-DON': DOM-элемент, ... }
         
         // ============================================================
         // 4. DOM-ЭЛЕМЕНТЫ
@@ -154,7 +146,7 @@
         }
         
         // ============================================================
-        // 6. ОТРИСОВКА МАРКЕРОВ
+        // 6. ОБНОВЛЕНИЕ МАРКЕРОВ (без пересоздания)
         // ============================================================
         function getLevel(votes) {
             if (votes === 0) return 0;
@@ -165,55 +157,128 @@
             if (votes <= 40) return 5;
             return 6;
         }
-        
-        function renderMarkers() {
-            // Удаляем старые маркеры
-            const oldMarkers = mapContainer.querySelectorAll('.custom-marker');
-            oldMarkers.forEach(m => m.remove());
-            
+
+        function updateMarkers() {
             const svg = mapContainer.querySelector('svg');
             if (!svg) return;
             
+            const MARKER_COORDS = generateRegionMarkers();
+            
             const rect = mapContainer.getBoundingClientRect();
-            const svgRect = svg.getBoundingClientRect();
+            const scaleX = 1; // rect.width / 100;
+            const scaleY = 1; // rect.height / 100;
             
-            // Коэффициент масштабирования
-            const scaleX = rect.width / 100;
-            const scaleY = rect.height / 100;
+            // Получаем список регионов, которые должны отображаться (с голосами > 0)
+            const activeRegions = Object.keys(MARKER_COORDS).filter(code => {
+                return (votesData[code] || 0) > 0;
+            });
             
-            Object.entries(MARKER_COORDS).forEach(([code, coords]) => {
+            // 1. УДАЛЯЕМ маркеры для регионов, у которых голосов стало 0
+            // Object.keys(markerElements).forEach(code => {
+            //     if (!activeRegions.includes(code)) {
+            //         const el = markerElements[code];
+            //         if (el && el.parentNode) {
+            //             el.parentNode.removeChild(el);
+            //         }
+            //         delete markerElements[code];
+            //     }
+            // });
+            
+            // 2. ОБНОВЛЯЕМ существующие маркеры и СОЗДАЁМ новые
+            activeRegions.forEach(code => {
                 const votes = votesData[code] || 0;
-                
-                // Показываем маркер только если есть голоса
-                if (votes <= 0) return;
+                const coords = MARKER_COORDS[code];
+                if (!coords) return;
                 
                 const level = getLevel(votes);
-                
-                const marker = document.createElement('div');
-                marker.className = 'custom-marker visible';
-                marker.dataset.region = code;
-                
                 const x = coords.x * scaleX;
                 const y = coords.y * scaleY;
                 
+                // Проверяем, существует ли уже маркер
+                let marker = markerElements[code];
+                if (!marker) {
+                    console.log(MARKER_COORDS)
+                    // СОЗДАЁМ новый маркер
+                    marker = document.createElement('div');
+                    marker.className = 'custom-marker visible';
+                    marker.dataset.region = code;
+                    
+                    // Точка с числом
+                    const dot = document.createElement('div');
+                    dot.className = `marker-dot has-votes level-${level}`;
+                    dot.textContent = votes;
+                    
+                    // Подпись
+                    // const label = document.createElement('div');
+                    // label.className = 'marker-label';
+                    // label.textContent = regionNames[code] || code;
+                    
+                    marker.appendChild(dot);
+                    // marker.appendChild(label);
+                    mapContainer.appendChild(marker);
+                    
+                    // Сохраняем ссылку на элементы для быстрого обновления
+                    marker._dot = dot;
+                    // marker._label = label;
+                    
+                    // Сохраняем в хранилище
+                    markerElements[code] = marker;
+                    
+                    console.log("marker --->", marker);
+                }
+                
+                // ОБНОВЛЯЕМ позицию (на случай изменения размера окна)
                 marker.style.left = x + 'px';
                 marker.style.top = y + 'px';
                 
-                // Точка с числом
-                const dot = document.createElement('div');
-                dot.className = `marker-dot has-votes level-${level}`;
-                dot.textContent = votes;
+                // ОБНОВЛЯЕМ содержимое
+                const dot = marker._dot || marker.querySelector('.marker-dot');
+                // const label = marker._label || marker.querySelector('.marker-label');
                 
-                // Подпись
-                const label = document.createElement('div');
-                label.className = 'marker-label';
-                label.textContent = regionNames[code] || code;
+                if (dot) {
+                    dot.textContent = votes;
+                    dot.className = `marker-dot has-votes level-${level}`;
+                }
                 
-                marker.appendChild(dot);
-                marker.appendChild(label);
-                mapContainer.appendChild(marker);
+                // if (label) {
+                //     label.textContent = regionNames[code] || code;
+                // }
             });
         }
+
+        function generateRegionMarkers() {
+            const svg = document.querySelector('#mapContainer svg');
+            const container = document.querySelector('#mapContainer');
+
+            if (!svg || !container) {
+                console.error('SVG или контейнер карты не найден.');
+                return;
+            }
+
+            const containerRect = container.getBoundingClientRect();
+
+            const REGION_MARKERS = {};
+
+            svg.querySelectorAll('[data-code]').forEach(region => {
+                const code = region.dataset.code;
+
+                const rect = region.getBoundingClientRect();
+
+                REGION_MARKERS[code] = {
+                    x: +(rect.left - containerRect.left + rect.width / 2).toFixed(3),
+                    y: +(rect.top - containerRect.top + rect.height / 2).toFixed(3)
+                };
+            });
+
+            
+            // console.log(JSON.stringify(REGION_MARKERS, null, 4));
+
+            // copy(JSON.stringify(REGION_MARKERS, null, 4));
+
+            return REGION_MARKERS;
+        }
+
+        
         
         // ============================================================
         // 7. ОБНОВЛЕНИЕ КАРТЫ (подсветка регионов)
@@ -305,7 +370,7 @@
         }
         
         // ============================================================
-        // 11. ГЛАВНЫЙ ЦИКЛ
+        // 11. ГЛАВНЫЙ ЦИКЛ ОБНОВЛЕНИЯ
         // ============================================================
         async function updateData() {
             try {
@@ -323,9 +388,16 @@
                 lastUpdateEl.textContent = new Date().toLocaleTimeString();
                 debugInfo.textContent = `✅ ${new Date().toLocaleTimeString()}`;
                 
+                // Обновляем карту (подсветка регионов)
                 updateMapColors();
-                renderMarkers();
+                
+                // Обновляем маркеры (без пересоздания)
+                updateMarkers();
+                
+                // Обновляем статистику
                 renderStats();
+                
+                // Обновляем информацию о выбранном регионе
                 updateInfo(selectedRegion);
                 
                 isFirstLoad = false;
@@ -360,8 +432,8 @@
             });
         }
         
-                // ============================================================
-        // 4.1 ЗАГРУЗКА SVG КАРТЫ
+        // ============================================================
+        // 13 ЗАГРУЗКА SVG КАРТЫ
         // ============================================================
         // Если карта у вас в отдельном файле — раскомментируйте:
         async function loadMapSVG() {
@@ -370,7 +442,6 @@
             const placeholder = document.getElementById('mapPlaceholder');
             placeholder.outerHTML = svgText;
         }
-        loadMapSVG();
         
         // Если карта уже в HTML — просто находим SVG:
         function getMapSVG() {
@@ -394,12 +465,14 @@
                 </div>
             `;
         }
+        // ============================================================
+        // 14. ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
 
-        // ============================================================
-        // 13. ИНИЦИАЛИЗАЦИЯ
-        // ============================================================
-        function init() {
+        function init(){
+            loadMapSVG();
             const svg = mapContainer.querySelector('svg');
+
             if (!svg) {
                 setTimeout(init, 500);
                 return;
@@ -416,11 +489,29 @@
         }
         
         document.addEventListener('DOMContentLoaded', init);
+
+        // ============================================================
+        // 15. ОБРАБОТЧИК ИЗМЕНЕНИЯ РАЗМЕРА ОКНА
+        // ============================================================
+        let resizeTimeout = null;
+
+        function handleResize() {
+            // Дебаунс — не обновляем слишком часто
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateMarkers();
+                resizeTimeout = null;
+            }, 200);
+        }
+
+        window.addEventListener('resize', handleResize);
+
+        window.__map = { votesData, regionNames, updateData };
         window.addEventListener('beforeunload', () => {
             if (updateTimer) clearInterval(updateTimer);
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            window.removeEventListener('resize', handleResize);
         });
-        
-        window.__map = { votesData, regionNames, updateData };
     </script>
 </body>
 </html>
