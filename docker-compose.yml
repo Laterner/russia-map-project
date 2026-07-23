@@ -24,6 +24,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./certs:/etc/nginx/certs/fstbot.ru:ro
       - ./logs/nginx:/var/log/nginx
+      - ./static:/usr/share/nginx/html/static
     depends_on:
       - votes-app
     networks:
@@ -43,6 +44,7 @@ services:
       - nginx
     profiles:
       - certbot
+
 
 networks:
   app_network:
